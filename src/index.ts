@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ChartItem } from 'chart.js';
 import Chart from 'chart.js/auto';
 
 const POISSION_RATE = 12 * 60 * 1000; // 12 minutes
@@ -20,11 +19,12 @@ function createRandomComputers(
   poissionRate: number,
 ): Computer[] {
   const computers: Array<Computer> = [];
-  let real_time = 0;
+  let randomTime: number = 0;
+  let real_time: number = 0;
 
   for (let i = 1; i <= compCount; i++) {
     // Generate random 1 - 12 minutes for each computer
-    let randomTime = Math.floor(Math.random() * poissionRate) + 1;
+    randomTime = Math.floor(Math.random() * poissionRate) + 1;
     real_time += POISON_DURATION;
 
     const computer = {
@@ -46,21 +46,20 @@ const computers: Array<Computer> = createRandomComputers(
 );
 
 function repairComputers(computers: Computer[]): Computer[] {
-  const fixedComputers = computers.map((computer, index) => {
-    if (computer.repair_time > 0) {
-      computer.real_time -= computer['repair_time'];
-      return computer;
-    }
+  const repairedComputers: Array<Computer> = [];
 
-    computer.status = 'healthy';
-    return computer;
+  computers.forEach((computer) => {
+    if (computer.status === 'broken') {
+      computer.status = 'repaired';
+      computer.real_time -= computer.repair_time + POISON_DURATION;
+    }
+    repairedComputers.push(computer);
   });
 
-  return fixedComputers;
+  return repairedComputers;
 }
 
 const _computers = repairComputers(computers);
-console.log(computers);
 
 function drawChart(data: Array<Computer>): void {
   const chartElement = document.getElementById('myChart');
@@ -81,7 +80,7 @@ function drawChart(data: Array<Computer>): void {
   };
 
   const config = {
-    type: 'line',
+    type: 'bar',
     data: chartData,
     options: {
       scales: {
