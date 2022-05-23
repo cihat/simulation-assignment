@@ -11,7 +11,7 @@ type Computer = {
   id: string;
   sequence: number;
   status: string;
-  repair_time: string;
+  repair_time: number;
   arrival_time: number;
   finish_time: number;
   start_time: number;
@@ -40,7 +40,7 @@ function createRandomComputers(
       repair_time: randomTime,
       arrival_time,
       finish_time,
-      start_time: null,
+      start_time: 0,
     };
     computers.push(computer);
   }
@@ -76,7 +76,9 @@ function repairComputers(computers: Computer[]): Computer[] {
 }
 
 function drawChart(data: Array<Computer>): void {
-  const chartElement = document.getElementById('myChart');
+  const chartElement: HTMLCanvasElement = document.getElementById(
+    'myChart',
+  ) as HTMLCanvasElement;
 
   if (!chartElement && !computers && Array.isArray(computers)) {
     process.exit();
@@ -103,7 +105,7 @@ function drawChart(data: Array<Computer>): void {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function (value, index, ticks) {
+            callback: function (value: number) {
               return `${humanizeDuration(value, { language: 'tr' })}`;
             },
           },
@@ -118,15 +120,16 @@ function drawChart(data: Array<Computer>): void {
     },
   };
 
-  new Chart(chartElement, config);
+  new Chart(chartElement, config as any);
 }
 
 const _computers = repairComputers(computers);
 
 drawChart(_computers);
 
-const infosContainerSelector: HTMLElement =
-  document.getElementById('infos_container');
+const infosContainerSelector: HTMLElement = document.getElementById(
+  'infos_container',
+) as HTMLElement;
 const getLastItem = _computers[_computers.length - 1];
 const diff = getLastItem.finish_time - TIME;
 
