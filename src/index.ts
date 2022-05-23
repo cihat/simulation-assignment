@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import Chart from 'chart.js/auto';
+import humanizeDuration from 'humanize-duration';
 
 const POISSION_RATE = 12 * 60 * 1000; // 12 minutes
 const POISON_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -10,8 +11,10 @@ type Computer = {
   id: string;
   sequence: number;
   status: string;
-  repair_time: number;
-  real_time: number;
+  repair_time: string;
+  arrival_time: number;
+  finish_time: number;
+  start_time: number;
 };
 
 function createRandomComputers(
@@ -20,19 +23,24 @@ function createRandomComputers(
 ): Computer[] {
   const computers: Array<Computer> = [];
   let randomTime: number = 0;
-  let real_time: number = 0;
+  let arrival_time: number = 0;
+  let finish_time: number = 0;
 
   for (let i = 1; i <= compCount; i++) {
     // Generate random 1 - 12 minutes for each computer
-    randomTime = Math.floor(Math.random() * poissionRate) + 1;
-    real_time += POISON_DURATION;
+    randomTime = Math.floor(Math.random() * poissionRate);
+
+    arrival_time += POISON_DURATION;
+    finish_time = arrival_time + randomTime;
 
     const computer = {
       id: uuidv4(),
       sequence: i,
       status: 'broken',
       repair_time: randomTime,
-      real_time,
+      arrival_time,
+      finish_time,
+      start_time: null,
     };
     computers.push(computer);
   }
@@ -48,18 +56,24 @@ const computers: Array<Computer> = createRandomComputers(
 function repairComputers(computers: Computer[]): Computer[] {
   const repairedComputers: Array<Computer> = [];
 
-  computers.forEach((computer) => {
-    if (computer.status === 'broken') {
-      computer.status = 'repaired';
-      computer.real_time -= computer.repair_time + POISON_DURATION;
+  computers.forEach((computer, index, arr) => {
+    let nextElement = arr[(index + 1) % arr.length];
+    let currElement = arr[index];
+
+    if (currElement.finish_time < nextElement.arrival_time) {
+      nextElement.start_time = currElement.finish_time;
+    } else {
+      nextElement.start_time = currElement.arrival_time;
     }
+
+    currElement.status = 'fixed';
     repairedComputers.push(computer);
   });
 
+  repairedComputers[0].start_time = repairedComputers[0].arrival_time = 0;
+
   return repairedComputers;
 }
-
-const _computers = repairComputers(computers);
 
 function drawChart(data: Array<Computer>): void {
   const chartElement = document.getElementById('myChart');
@@ -71,10 +85,12 @@ function drawChart(data: Array<Computer>): void {
     labels: data.map((computer) => `${computer.sequence}.pc`),
     datasets: [
       {
-        label: 'Benzetim ve Modeleme Odevi #2',
+        label: 'Baslangic ve Bitis Sureleri',
         backgroundColor: 'rgb(255, 99, 132)',
         borderColor: 'rgb(255, 99, 132)',
-        data: data.map((computer) => computer.repair_time / 1000 / 60),
+        data: data.map((computer) => {
+          return [computer.start_time, computer.finish_time];
+        }),
       },
     ],
   };
@@ -86,6 +102,17 @@ function drawChart(data: Array<Computer>): void {
       scales: {
         y: {
           beginAtZero: true,
+          ticks: {
+            callback: function (value, index, ticks) {
+              return `${humanizeDuration(value, { language: 'tr' })}`;
+            },
+          },
+        },
+      },
+      plugins: {
+        subtitle: {
+          display: true,
+          text: 'Benzetim ve Modeleme Odevi #2',
         },
       },
     },
@@ -94,4 +121,63 @@ function drawChart(data: Array<Computer>): void {
   new Chart(chartElement, config);
 }
 
+const _computers = repairComputers(computers);
+
 drawChart(_computers);
+
+const infosContainerSelector: HTMLElement =
+  document.getElementById('infos_container');
+const getLastItem = _computers[_computers.length - 1];
+const diff = getLastItem.finish_time - TIME;
+
+infosContainerSelector.innerHTML = `
+  <div class="info">
+    <p>
+      <div>
+      <span>
+        <strong>Ortalama Gelen Musteri Sayisi: </strong>
+      </span>
+        <strong>${_computers.length}</strong>
+      </div>
+      <span>
+      <span>
+        <strong>Ortalama Kuyruktaki Musteri Sayisi: </strong>
+      </span>
+        <strong>${
+          _computers.filter((computer) => computer.status == 'broken').length
+        }</strong>
+      </span>
+      <span>
+      <div>
+        <span>
+          <strong>Sorunu tespit edilen bilgisayar sayisi: </strong>
+        </span>
+        <strong>${
+          _computers.filter((computer) => computer.status == 'fixed').length
+        }</strong>
+      </span>
+      </div>
+      <div>
+        <span>
+          <strong>Asan Sure: </strong>
+        </span>
+      <strong>${humanizeDuration(diff, { language: 'tr' })}</strong>
+    </span>
+    </div>
+
+    <div>
+      <span>
+        <strong>Toplan Gecen Sure: </strong>
+      </span>
+      <strong>${humanizeDuration(
+        _computers[_computers.length - 1].finish_time,
+        { language: 'tr' },
+      )}</strong>
+      </span>
+    </div>
+
+
+    </p>
+  </div>
+  
+  `;
