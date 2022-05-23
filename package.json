@@ -12,13 +12,14 @@
   },
   "dependencies": {
     "chart.js": "^3.7.1",
-    "moment": "^2.29.3",
+    "humanize-duration": "^3.27.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@snowpack/plugin-typescript": "^1.2.1",
     "@types/canvas-confetti": "^1.0.0",
     "@types/d3-shape": "^3.0.2",
+    "@types/humanize-duration": "^3.27.1",
     "@types/snowpack-env": "^2.3.3",
     "@types/uuid": "^8.3.4",
     "prettier": "^2.2.1",
