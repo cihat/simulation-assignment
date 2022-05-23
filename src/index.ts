@@ -17,6 +17,25 @@ type Computer = {
   start_time: number;
 };
 
+function randn_bm(min: number, max: number, skew: number): number {
+  let u = 0,
+    v = 0;
+  while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+  while (v === 0) v = Math.random();
+  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+
+  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  if (num > 1 || num < 0)
+    num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
+  else {
+    num = Math.pow(num, skew); // Skew
+    num *= max - min; // Stretch to fill range
+    num += min; // offset to min
+  }
+  console.log(num);
+  return num;
+}
+
 function createRandomComputers(
   compCount: number,
   poissionRate: number,
@@ -27,8 +46,8 @@ function createRandomComputers(
   let finish_time: number = 0;
 
   for (let i = 1; i <= compCount; i++) {
-    // Generate random 1 - 12 minutes for each computer
-    randomTime = Math.floor(Math.random() * poissionRate);
+    // Generate random 0 - 24 minutes for each computer with Normal Distribution With Min, Max, Skew(Gaussian bell curve)
+    randomTime = randn_bm(0, 24, 1) * 60 * 1000;
 
     arrival_time += POISON_DURATION;
     finish_time = arrival_time + randomTime;
@@ -60,10 +79,10 @@ function repairComputers(computers: Computer[]): Computer[] {
     let nextElement = arr[(index + 1) % arr.length];
     let currElement = arr[index];
 
-    if (currElement.finish_time < nextElement.arrival_time) {
+    if (currElement.finish_time < nextElement?.arrival_time) {
       nextElement.start_time = currElement.finish_time;
     } else {
-      nextElement.start_time = currElement.arrival_time;
+      nextElement.start_time = currElement?.arrival_time;
     }
 
     currElement.status = 'fixed';
