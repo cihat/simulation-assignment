@@ -1,14 +1,9 @@
 import type { Computer } from './types';
 import randn_bm from './randomGaussianGenerator';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  POISON_DURATION,
-  TIME,
-} from './constans';
+import { POISON_DURATION, TIME } from './constans';
 
-export default function createRandomComputers(
-  compCount: number,
-): Computer[] {
+export default function createRandomComputers(compCount: number): Computer[] {
   const computers: Array<Computer> = [];
   let randomTime: number = 0;
   let arrival_time: number = 0;
