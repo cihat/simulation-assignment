@@ -32,7 +32,7 @@ function randn_bm(min: number, max: number, skew: number): number {
     num *= max - min; // Stretch to fill range
     num += min; // offset to min
   }
-  console.log(num);
+
   return num;
 }
 
@@ -44,6 +44,8 @@ function createRandomComputers(
   let randomTime: number = 0;
   let arrival_time: number = 0;
   let finish_time: number = 0;
+  let diff: number = 0,
+    excessComputer: number = 0;
 
   for (let i = 1; i <= compCount; i++) {
     // Generate random 0 - 24 minutes for each computer with Normal Distribution With Min, Max, Skew(Gaussian bell curve)
@@ -62,6 +64,17 @@ function createRandomComputers(
       start_time: 0,
     };
     computers.push(computer);
+  }
+
+  diff = computers[computers.length - 1].finish_time - TIME;
+  excessComputer = Math.floor((diff / 60 / 1000) % 100);
+  if (excessComputer >= 10) {
+    excessComputer = 2;
+  } else {
+    excessComputer = 1;
+  }
+  for (let i = 0; i < excessComputer; i++) {
+    computers.pop();
   }
 
   return computers;
@@ -90,6 +103,8 @@ function repairComputers(computers: Computer[]): Computer[] {
   });
 
   repairedComputers[0].start_time = repairedComputers[0].arrival_time = 0;
+
+  console.log(repairedComputers);
 
   return repairedComputers;
 }
