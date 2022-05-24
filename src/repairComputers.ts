@@ -8,9 +8,17 @@ export default function repairComputers(computers: Computer[]): Computer[] {
     let currElement = arr[index];
 
     if (currElement.finish_time < nextElement?.arrival_time) {
-      nextElement.start_time = currElement.finish_time;
+      nextElement.start_time = currElement.arrival_time;
+      // currElement.finish_time = 
     } else {
-      nextElement.start_time = currElement?.arrival_time;
+      nextElement.start_time =
+        currElement?.finish_time -
+        nextElement.arrival_time +
+        nextElement.arrival_time;
+    }
+
+    if (nextElement.start_time < nextElement.arrival_time) {
+      nextElement.start_time = nextElement.arrival_time;
     }
 
     currElement.status = 'repaired';
@@ -18,6 +26,8 @@ export default function repairComputers(computers: Computer[]): Computer[] {
   });
 
   repairedComputers[0].start_time = repairedComputers[0].arrival_time = 0;
+
+  console.log(repairedComputers);
 
   return repairedComputers;
 }
